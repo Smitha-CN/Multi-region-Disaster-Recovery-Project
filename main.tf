@@ -399,6 +399,7 @@ resource "aws_iam_role_policy" "s3_replication_policy" {
 }
 
 resource "aws_s3_bucket_replication_configuration" "replication" {
+provider = aws.us_west_2
   depends_on = [
     aws_s3_bucket_versioning.versioning_source,
     aws_s3_bucket_versioning.versioning_dest,
