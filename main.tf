@@ -327,3 +327,45 @@ resource "aws_s3_bucket_policy" "allow_replication_on_dest" {
   })
 }
 
+
+
+resource "aws_s3_bucket_policy" "allow_replication_on_source" {
+  provider = aws.us_east_1
+  bucket   = aws_s3_bucket.bucket_us_east_1.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "AllowReplicationConfiguration",
+        Effect    = "Allow",
+        Principal = {
+          Service = "s3.amazonaws.com"
+        },
+        Action = [
+          "s3:GetReplicationConfiguration",
+          "s3:ListBucket"
+        ],
+        Resource = aws_s3_bucket.bucket_us_east_1.arn,
+        Condition = {
+          StringEquals = {
+            "AWS:SourceAccount" = "417311687307"
+          }
+        }
+      },
+      {
+        Sid       = "AllowReplicationObjectAccess",
+        Effect    = "Allow",
+        Principal = {
+          AWS = aws_iam_role.s3_replication_role.arn
+        },
+        Action = [
+          "s3:GetObjectVersion",
+          "s3:GetObjectVersionAcl",
+          "s3:GetObjectVersionTagging"
+        ],
+        Resource = "${aws_s3_bucket.bucket_us_east_1.arn}/*"
+      }
+    ]
+  })
+}
