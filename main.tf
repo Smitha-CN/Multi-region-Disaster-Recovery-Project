@@ -291,7 +291,7 @@ resource "aws_s3_bucket_versioning" "versioning_dest" {
 # role
 resource "aws_iam_role" "s3_replication_role" {
   name = "s3-replication-role"
-
+ provider = aws.us_east_1
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
