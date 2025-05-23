@@ -216,3 +216,31 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
     Name = "ec2-sg-west"
   }
 }
+
+# EC2 in us-east-1
+resource "aws_instance" "ec2_us_east_1" {
+  provider          = aws.us_east_1
+  ami               = "ami-0c101f26f147fa7fd" 
+  instance_type     = "t2.micro"
+  subnet_id         = aws_subnet.subnet_us_east_1a.id
+  key_name          = "demo"  # <-- Replace this
+  vpc_security_group_ids = [aws_security_group.ec2_sg_us_east_1.id]
+
+  tags = {
+    Name = "ec2-east"
+  }
+}
+
+# EC2 in us-west-2
+resource "aws_instance" "ec2_us_west_2" {
+  provider          = aws.us_west_2
+  ami               = "ami-04999cd8f2624f834" 
+  instance_type     = "t2.micro"
+  subnet_id         = aws_subnet.subnet_us_west_2a.id
+  key_name          = "demo"  # <-- Replace this
+  vpc_security_group_ids = [aws_security_group.ec2_sg_us_west_2.id]
+
+  tags = {
+    Name = "ec2-west"
+  }
+}
