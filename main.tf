@@ -91,5 +91,48 @@ resource "aws_subnet" "subnet_us_west_2b" {
   }
 }
 
+# Route Table for VPC in us-east-1
+resource "aws_route_table" "rtb_us_east_1" {
+  provider = aws.us_east_1
+  vpc_id   = aws_vpc.vpc_us_east_1.id
 
+  tags = {
+    Name = "rtb-us-east-1"
+  }
+}
+
+# Route Table for VPC in us-west-2
+resource "aws_route_table" "rtb_us_west_2" {
+  provider = aws.us_west_2
+  vpc_id   = aws_vpc.vpc_us_west_2.id
+
+  tags = {
+    Name = "rtb-us-west-2"
+  }
+}
+# us-east-1
+resource "aws_route_table_association" "assoc_us_east_1a" {
+  provider       = aws.us_east_1
+  subnet_id      = aws_subnet.subnet_us_east_1a.id
+  route_table_id = aws_route_table.rtb_us_east_1.id
+}
+
+resource "aws_route_table_association" "assoc_us_east_1b" {
+  provider       = aws.us_east_1
+  subnet_id      = aws_subnet.subnet_us_east_1b.id
+  route_table_id = aws_route_table.rtb_us_east_1.id
+}
+
+# us-west-2
+resource "aws_route_table_association" "assoc_us_west_2a" {
+  provider       = aws.us_west_2
+  subnet_id      = aws_subnet.subnet_us_west_2a.id
+  route_table_id = aws_route_table.rtb_us_west_2.id
+}
+
+resource "aws_route_table_association" "assoc_us_west_2b" {
+  provider       = aws.us_west_2
+  subnet_id      = aws_subnet.subnet_us_west_2b.id
+  route_table_id = aws_route_table.rtb_us_west_2.id
+}
 
