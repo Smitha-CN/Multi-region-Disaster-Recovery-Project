@@ -135,4 +135,37 @@ resource "aws_route_table_association" "assoc_us_west_2b" {
   subnet_id      = aws_subnet.subnet_us_west_2b.id
   route_table_id = aws_route_table.rtb_us_west_2.id
 }
+# IGW for us-east-1
+resource "aws_internet_gateway" "igw_us_east_1" {
+  provider = aws.us_east_1
+  vpc_id   = aws_vpc.vpc_us_east_1.id
 
+  tags = {
+    Name = "igw-us-east-1"
+  }
+}
+
+# IGW for us-west-2
+resource "aws_internet_gateway" "igw_us_west_2" {
+  provider = aws.us_west_2
+  vpc_id   = aws_vpc.vpc_us_west_2.id
+
+  tags = {
+    Name = "igw-us-west-2"
+  }
+}
+# Route in us-east-1
+resource "aws_route" "route_internet_us_east_1" {
+  provider               = aws.us_east_1
+  route_table_id         = aws_route_table.rtb_us_east_1.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw_us_east_1.id
+}
+
+# Route in us-west-2
+resource "aws_route" "route_internet_us_west_2" {
+  provider               = aws.us_west_2
+  route_table_id         = aws_route_table.rtb_us_west_2.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw_us_west_2.id
+}
