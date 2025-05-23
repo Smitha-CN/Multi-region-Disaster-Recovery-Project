@@ -271,4 +271,59 @@ resource "aws_s3_bucket" "bucket_us_west_2" {
 }
 
 
+resource "aws_s3_bucket_versioning" "versioning_source" {
+     provider = aws.us_east_1
+  bucket = aws_s3_bucket.bucket_us_east_1.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "versioning_dest" {
+  provider = aws.us_west_2
+  bucket   = aws_s3_bucket.bucket_us_west_2.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+
+# role
+resource "aws_iam_role" "s3_replication_role" {
+  name = "s3-replication-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "s3.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+# policy
+resource "aws_s3_bucket_policy" "allow_replication_on_dest" {
+  provider = aws.us_west_2
+  bucket   = aws_s3_bucket.bucket_us_west_2.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = aws_iam_role.s3_replication_role.arn
+        },
+        Action = [
+          "s3:ReplicateObject",
+          "s3:ReplicateDelete",
+          "s3:ReplicateTags"
+        ],
+        Resource = "${aws_s3_bucket.bucket_us_west_2.arn}/*"
+      }
+    ]
+  })
+}
 
