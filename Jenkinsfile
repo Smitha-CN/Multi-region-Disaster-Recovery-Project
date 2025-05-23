@@ -8,7 +8,7 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
-   agent  { label 'linux' }
+   agent  any
     stages {
         stage('checkout') {
             steps {
@@ -24,9 +24,9 @@ pipeline {
 
         stage('Plan') {
             steps {
-               sh 'pwd;cd terraform/ ; terraform init'
-                sh "pwd;cd terraform/ ; terraform plan -out tfplan"
-                sh 'pwd;cd terraform/ ; terraform show -no-color tfplan > tfplan.txt'
+                bat 'cd terraform && terraform init'
+                bat 'cd terraform && terraform plan -out tfplan'
+                bat 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
             }
         }
         stage('Approval') {
@@ -47,7 +47,7 @@ pipeline {
 
         stage('Apply') {
             steps {
-                sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
+                bat 'cd terraform && terraform apply -input=false tfplan'
             }
         }
     }
