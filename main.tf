@@ -408,7 +408,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
     aws_s3_bucket_versioning.versioning_dest,
     aws_s3_bucket_policy.allow_replication_on_dest
   ]
-
+ provider = aws.us_east_1
   bucket = aws_s3_bucket.bucket_us_east_1.id
   role   = aws_iam_role.s3_replication_role.arn
 
