@@ -285,3 +285,67 @@ resource "aws_s3_bucket_versioning" "versioning_dest" {
     status = "Enabled"
   }
 }
+
+
+resource "aws_db_subnet_group" "rds_subnet_group_use1" {
+  provider = aws.us_east_1
+  name     = "rds-subnet-group-use1"
+  subnet_ids = [
+    aws_subnet.subnet_us_east_1a.id,
+    aws_subnet.subnet_us_east_1b.id
+  ]
+
+  tags = {
+    Name = "rds-subnet-group-use1"
+  }
+}
+
+# DB Subnet Group for RDS in us-west-2
+resource "aws_db_subnet_group" "rds_subnet_group_usw2" {
+  provider = aws.us_west_2
+  name     = "rds-subnet-group-usw2"
+  subnet_ids = [
+    aws_subnet.subnet_us_west_2a.id,
+    aws_subnet.subnet_us_west_2b.id
+  ]
+
+  tags = {
+    Name = "rds-subnet-group-usw2"
+  }
+}
+resource "aws_db_instance" "rds_primary" {
+  provider               = aws.us_east_1
+  identifier             = "mysql-primary555555"
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  username               = "admin"
+  password               = "securepass123"  
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group_use1.name
+  vpc_security_group_ids = [aws_security_group.ec2_sg_us_east_1.id]
+  skip_final_snapshot    = true
+  backup_retention_period = 7
+  publicly_accessible    = false
+  multi_az               = false
+
+  tags = {
+    Name = "rds-primary"
+  }
+}
+resource "aws_db_instance" "rds_replica" {
+  provider                = aws.us_west_2
+  identifier              = "mysql-replica"
+  instance_class          = "db.t3.micro"
+  replicate_source_db     = aws_db_instance.rds_primary.arn
+  db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group_usw2.name
+  vpc_security_group_ids  = [aws_security_group.ec2_sg_us_west_2.id]
+  publicly_accessible     = false
+  skip_final_snapshot     = true
+
+  depends_on = [aws_db_instance.rds_primary]
+
+  tags = {
+    Name = "rds-replica"
+  }
+}
