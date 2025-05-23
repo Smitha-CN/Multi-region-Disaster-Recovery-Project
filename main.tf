@@ -270,21 +270,5 @@ resource "aws_s3_bucket" "bucket_us_west_2" {
   }
 }
 
-resource "aws_s3_bucket_versioning" "versioning_source" {
-     provider = aws.us_east_1
-  bucket = aws_s3_bucket.bucket_us_east_1.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_versioning" "versioning_dest" {
-  provider = aws.us_west_2
-  bucket   = aws_s3_bucket.bucket_us_west_2.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
 
 
