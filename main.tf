@@ -220,7 +220,7 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
 # EC2 in us-east-1
 resource "aws_instance" "ec2_us_east_1" {
   provider          = aws.us_east_1
-  ami               = "ami-0c101f26f147fa7fd" 
+  ami               = "ami-0af9569868786b23a" 
   instance_type     = "t2.micro"
   subnet_id         = aws_subnet.subnet_us_east_1a.id
   key_name          = "demo"  # <-- Replace this
