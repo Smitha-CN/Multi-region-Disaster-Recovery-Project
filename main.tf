@@ -169,3 +169,50 @@ resource "aws_route" "route_internet_us_west_2" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw_us_west_2.id
 }
+
+# Open port 22 for SSH (change CIDR for more secure access)
+resource "aws_security_group" "ec2_sg_us_east_1" {
+  provider = aws.us_east_1
+  vpc_id   = aws_vpc.vpc_us_east_1.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Restrict to your IP in real usage
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-sg-east"
+  }
+}
+
+resource "aws_security_group" "ec2_sg_us_west_2" {
+  provider = aws.us_west_2
+  vpc_id   = aws_vpc.vpc_us_west_2.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-sg-west"
+  }
+}
