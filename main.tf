@@ -17,7 +17,7 @@ provider "aws" {
 }
 
  # VPCs
-# data "aws_caller_identity" "current" {}
+ data "aws_caller_identity" "current" {}
 
  resource "aws_vpc" "vpc_us_east_1" {
   provider             = aws.us_east_1
