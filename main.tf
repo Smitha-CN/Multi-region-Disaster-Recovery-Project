@@ -2,7 +2,6 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_vpc" "vpc_us_east_1" {
-  provider             = aws.us_east_1
   cidr_block           = var.vpc_cidr_us_east_1
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -13,7 +12,7 @@ resource "aws_vpc" "vpc_us_east_1" {
 }
 
 resource "aws_vpc" "vpc_us_west_2" {
-  provider             = aws.us_west_2
+  provider             = aws.west
   cidr_block           = var.vpc_cidr_us_west_2
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -25,7 +24,6 @@ resource "aws_vpc" "vpc_us_west_2" {
 
 # Subnets - us-east-1
 resource "aws_subnet" "subnet_us_east_1a" {
-  provider                = aws.us_east_1
   vpc_id                  = aws_vpc.vpc_us_east_1.id
   cidr_block              = var.subnet_cidrs_us_east_1[0]
   availability_zone       = "us-east-1a"
@@ -37,7 +35,6 @@ resource "aws_subnet" "subnet_us_east_1a" {
 }
 
 resource "aws_subnet" "subnet_us_east_1b" {
-  provider                = aws.us_east_1
   vpc_id                  = aws_vpc.vpc_us_east_1.id
   cidr_block              = var.subnet_cidrs_us_east_1[1]
   availability_zone       = "us-east-1b"
@@ -50,7 +47,7 @@ resource "aws_subnet" "subnet_us_east_1b" {
 
 # Subnets - us-west-2
 resource "aws_subnet" "subnet_us_west_2a" {
-  provider                = aws.us_west_2
+  provider                = aws.west
   vpc_id                  = aws_vpc.vpc_us_west_2.id
   cidr_block              = var.subnet_cidrs_us_west_2[0]
   availability_zone       = "us-west-2a"
@@ -62,7 +59,7 @@ resource "aws_subnet" "subnet_us_west_2a" {
 }
 
 resource "aws_subnet" "subnet_us_west_2b" {
-  provider                = aws.us_west_2
+  provider                = aws.west
   vpc_id                  = aws_vpc.vpc_us_west_2.id
   cidr_block              = var.subnet_cidrs_us_west_2[1]
   availability_zone       = "us-west-2b"
@@ -74,7 +71,6 @@ resource "aws_subnet" "subnet_us_west_2b" {
 }
 # Route Table for VPC in us-east-1
 resource "aws_route_table" "rtb_us_east_1" {
-  provider = aws.us_east_1
   vpc_id   = aws_vpc.vpc_us_east_1.id
 
   tags = {
@@ -84,7 +80,7 @@ resource "aws_route_table" "rtb_us_east_1" {
 
 # Route Table for VPC in us-west-2
 resource "aws_route_table" "rtb_us_west_2" {
-  provider = aws.us_west_2
+  provider = aws.west
   vpc_id   = aws_vpc.vpc_us_west_2.id
 
   tags = {
@@ -93,32 +89,29 @@ resource "aws_route_table" "rtb_us_west_2" {
 }
 # us-east-1
 resource "aws_route_table_association" "assoc_us_east_1a" {
-  provider       = aws.us_east_1
   subnet_id      = aws_subnet.subnet_us_east_1a.id
   route_table_id = aws_route_table.rtb_us_east_1.id
 }
 
 resource "aws_route_table_association" "assoc_us_east_1b" {
-  provider       = aws.us_east_1
   subnet_id      = aws_subnet.subnet_us_east_1b.id
   route_table_id = aws_route_table.rtb_us_east_1.id
 }
 
 # us-west-2
 resource "aws_route_table_association" "assoc_us_west_2a" {
-  provider       = aws.us_west_2
+  provider       = aws.west
   subnet_id      = aws_subnet.subnet_us_west_2a.id
   route_table_id = aws_route_table.rtb_us_west_2.id
 }
 
 resource "aws_route_table_association" "assoc_us_west_2b" {
-  provider       = aws.us_west_2
+  provider       = aws.west
   subnet_id      = aws_subnet.subnet_us_west_2b.id
   route_table_id = aws_route_table.rtb_us_west_2.id
 }
 # IGW for us-east-1
 resource "aws_internet_gateway" "igw_us_east_1" {
-  provider = aws.us_east_1
   vpc_id   = aws_vpc.vpc_us_east_1.id
 
   tags = {
@@ -128,7 +121,7 @@ resource "aws_internet_gateway" "igw_us_east_1" {
 
 # IGW for us-west-2
 resource "aws_internet_gateway" "igw_us_west_2" {
-  provider = aws.us_west_2
+  provider = aws.west
   vpc_id   = aws_vpc.vpc_us_west_2.id
 
   tags = {
@@ -137,7 +130,6 @@ resource "aws_internet_gateway" "igw_us_west_2" {
 }
 # Route in us-east-1
 resource "aws_route" "route_internet_us_east_1" {
-  provider               = aws.us_east_1
   route_table_id         = aws_route_table.rtb_us_east_1.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw_us_east_1.id
@@ -145,14 +137,13 @@ resource "aws_route" "route_internet_us_east_1" {
 
 # Route in us-west-2
 resource "aws_route" "route_internet_us_west_2" {
-  provider               = aws.us_west_2
+  provider               = aws.west
   route_table_id         = aws_route_table.rtb_us_west_2.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw_us_west_2.id
 }
 # Open port 22 for SSH (change CIDR for more secure access)
 resource "aws_security_group" "ec2_sg_us_east_1" {
-  provider = aws.us_east_1
   vpc_id   = aws_vpc.vpc_us_east_1.id
 
   ingress {
@@ -175,7 +166,7 @@ resource "aws_security_group" "ec2_sg_us_east_1" {
 }
 
 resource "aws_security_group" "ec2_sg_us_west_2" {
-  provider = aws.us_west_2
+  provider = aws.west
   vpc_id   = aws_vpc.vpc_us_west_2.id
 
   ingress {
@@ -198,7 +189,6 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
 }
 # EC2 in us-east-1
 resource "aws_instance" "ec2_us_east_1" {
-  provider          = aws.us_east_1
   ami               = "ami-0c101f26f147fa7fd" 
   instance_type     = "t2.micro"
   subnet_id         = aws_subnet.subnet_us_east_1a.id
@@ -212,7 +202,7 @@ resource "aws_instance" "ec2_us_east_1" {
 
 # EC2 in us-west-2
 resource "aws_instance" "ec2_us_west_2" {
-  provider          = aws.us_west_2
+  provider          = aws.west
   ami               = "ami-04999cd8f2624f834" 
   instance_type     = "t2.micro"
   subnet_id         = aws_subnet.subnet_us_west_2a.id
@@ -225,7 +215,6 @@ resource "aws_instance" "ec2_us_west_2" {
 }
 # S3 Bucket in us-east-1
 resource "aws_s3_bucket" "bucket_us_east_1" {
-  provider = aws.us_east_1
   bucket   = "my-unique-bucket-us-east-1-primary"  
   force_destroy = true
 
@@ -237,7 +226,7 @@ resource "aws_s3_bucket" "bucket_us_east_1" {
 
 # S3 Bucket in us-west-2
 resource "aws_s3_bucket" "bucket_us_west_2" {
-  provider = aws.us_west_2
+  provider = aws.west
   bucket   = "my-unique-bucket-us-west-2-replica"  
   force_destroy = true
 
@@ -256,7 +245,7 @@ resource "aws_s3_bucket_versioning" "versioning_source" {
 }
 
 resource "aws_s3_bucket_versioning" "versioning_dest" {
-  provider = aws.us_west_2
+  provider = aws.west
   bucket   = aws_s3_bucket.bucket_us_west_2.id
   versioning_configuration {
     status = "Enabled"
@@ -281,7 +270,7 @@ resource "aws_iam_role" "s3_replication_role" {
 }
 # policy
 resource "aws_s3_bucket_policy" "allow_replication_on_dest" {
-  provider = aws.us_west_2
+  provider = aws.west
   bucket   = aws_s3_bucket.bucket_us_west_2.id
 
   policy = jsonencode({
@@ -304,7 +293,6 @@ resource "aws_s3_bucket_policy" "allow_replication_on_dest" {
 }
 
 resource "aws_s3_bucket_policy" "allow_replication_on_source" {
-  provider = aws.us_east_1
   bucket   = aws_s3_bucket.bucket_us_east_1.id
 
   policy = jsonencode({
@@ -416,7 +404,6 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
 # }
 # DB Subnet Group for RDS in us-east-1
 resource "aws_db_subnet_group" "rds_subnet_group_use1" {
-  provider = aws.us_east_1
   name     = "rds-subnet-group-use1"
   subnet_ids = [
     aws_subnet.subnet_us_east_1a.id,
@@ -430,7 +417,7 @@ resource "aws_db_subnet_group" "rds_subnet_group_use1" {
 
 # DB Subnet Group for RDS in us-west-2
 resource "aws_db_subnet_group" "rds_subnet_group_usw2" {
-  provider = aws.us_west_2
+  provider = aws.west
   name     = "rds-subnet-group-usw2"
   subnet_ids = [
     aws_subnet.subnet_us_west_2a.id,
@@ -442,7 +429,6 @@ resource "aws_db_subnet_group" "rds_subnet_group_usw2" {
   }
 }
 resource "aws_db_instance" "rds_primary" {
-  provider               = aws.us_east_1
   identifier             = "mysql-primary555555"
   engine                 = "mysql"
   engine_version         = "8.0"
@@ -462,7 +448,7 @@ resource "aws_db_instance" "rds_primary" {
   }
 }
 resource "aws_db_instance" "rds_replica" {
-  provider                = aws.us_west_2
+  provider                = aws.west
   identifier              = "mysql-replica"
   instance_class          = "db.t3.micro"
   replicate_source_db     = aws_db_instance.rds_primary.arn
