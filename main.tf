@@ -223,7 +223,7 @@ resource "aws_instance" "ec2_us_east_1" {
   ami               = "ami-0af9569868786b23a" 
   instance_type     = "t2.micro"
   subnet_id         = aws_subnet.subnet_us_east_1a.id
-  key_name          = "demo"  # <-- Replace this
+  key_name          = "demo1"  # <-- Replace this
   vpc_security_group_ids = [aws_security_group.ec2_sg_us_east_1.id]
 
   tags = {
