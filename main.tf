@@ -368,6 +368,7 @@ resource "aws_s3_bucket_policy" "allow_replication_on_source" {
 }
 
 resource "aws_iam_role_policy" "s3_replication_policy" {
+  provider = aws.us_east_1
   name = "s3-replication-policy"
   role = aws_iam_role.s3_replication_role.id
 
