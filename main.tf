@@ -489,21 +489,21 @@ resource "aws_db_instance" "rds_primary" {
     Name = "rds-primary"
   }
 }
-resource "aws_db_instance" "rds_replica" {
-  provider                = aws.us_west_2
-  identifier              = "mysql-replica"
-  instance_class          = "db.t3.micro"
-  replicate_source_db = aws_db_instance.rds_primary.id
-  db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group_usw2.name
-  vpc_security_group_ids  = [aws_security_group.ec2_sg_us_west_2.id]
-  publicly_accessible     = false
-  skip_final_snapshot     = true
-
-  depends_on = [aws_db_instance.rds_primary]
-
-  tags = {
-    Name = "rds-replica"
-  }
+provider "aws" {
+  alias  = "uswest2"
+  region = "us-west-2"
 }
+
+resource "aws_db_instance" "replica" {
+  provider = aws.us_west_2
+  identifier           = "mydb-replica"
+  engine               = "mysql"
+  instance_class       = "db.t3.micro"
+  publicly_accessible  = true
+  replicate_source_db  = aws_db_instance.primary.arn  # Must use ARN
+  db_subnet_group_name = aws_db_subnet_group.replica.name
+  skip_final_snapshot  = true
+}
+
 
 
