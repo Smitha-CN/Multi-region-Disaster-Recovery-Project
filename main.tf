@@ -501,7 +501,7 @@ resource "aws_db_instance" "replica" {
   instance_class       = "db.t3.micro"
   publicly_accessible  = true
   replicate_source_db  = aws_db_instance.rds_primary.arn  # Must use ARN
-  db_subnet_group_name = aws_db_subnet_group.replica.name
+  db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group_usw2.name
   skip_final_snapshot  = true
 }
 
