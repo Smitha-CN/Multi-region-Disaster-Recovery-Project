@@ -500,7 +500,7 @@ resource "aws_db_instance" "replica" {
   engine               = "mysql"
   instance_class       = "db.t3.micro"
   publicly_accessible  = true
-  replicate_source_db  = aws_db_instance.primary.arn  # Must use ARN
+  replicate_source_db  = aws_db_instance.rds_primary.arn  # Must use ARN
   db_subnet_group_name = aws_db_subnet_group.replica.name
   skip_final_snapshot  = true
 }
