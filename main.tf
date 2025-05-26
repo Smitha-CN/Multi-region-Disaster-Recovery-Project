@@ -557,4 +557,18 @@ resource "aws_db_instance" "replica" {
   skip_final_snapshot  = true
 }
 
+data "aws_route53_zone" "smitha_zone" {
+  provider = aws.us_west_2
+  name         = "smithaproperties.com"
+  private_zone = false
+}
+resource "aws_route53_health_check" "primary_ec2" {
+  provider = aws.us_west_2
+  fqdn              = "www.smithaproperties.com"
+  port              = 80
+  type              = "HTTP"
+  resource_path     = "/"
+  failure_threshold = 3
+  request_interval  = 30
+}
 
