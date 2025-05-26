@@ -601,21 +601,38 @@ resource "aws_route53_record" "secondary" {
 }
 resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
   provider               = aws.us_east_1
-  alarm_name          = "CrossRegionReplicaLag"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "ReplicaLag"
-  namespace           = "AWS/RDS"
-  period              = 300
-  statistic           = "Average"
-  threshold           = 60
-  alarm_description   = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
-  treat_missing_data  = "notBreaching"
+  alarm_name             = "CrossRegionReplicaLag"
+  comparison_operator    = "GreaterThanThreshold"
+  evaluation_periods     = 1
+  metric_name            = "ReplicaLag"
+  namespace              = "AWS/RDS"
+  period                 = 300
+  statistic              = "Average"
+  threshold              = 0
+  alarm_description      = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
+  treat_missing_data     = "notBreaching"
 
   dimensions = {
     DBInstanceIdentifier = "mydb-replica"
   }
+
+  alarm_actions          = [aws_sns_topic.alerts.arn]
+  ok_actions             = [aws_sns_topic.alerts.arn]
+  insufficient_data_actions = [aws_sns_topic.alerts.arn]
 }
+
+resource "aws_sns_topic" "alerts" {
+  provider               = aws.us_east_1
+  name = "rds-replica-alerts"
+}
+
+resource "aws_sns_topic_subscription" "email" {
+  provider               = aws.us_east_1
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "email"
+  endpoint  = "smithamalthi@example.com"
+}
+
 # route53 alarm
 resource "aws_route53_health_check" "web_health_check" {
   provider               = aws.us_east_1
@@ -647,5 +664,4 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
     HealthCheckId = aws_route53_health_check.web_health_check.id
   }
 }
-
 
