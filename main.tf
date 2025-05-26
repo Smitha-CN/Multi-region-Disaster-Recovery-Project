@@ -571,4 +571,32 @@ resource "aws_route53_health_check" "primary_ec2" {
   failure_threshold = 3
   request_interval  = 30
 }
+resource "aws_route53_record" "primary" {
+  provider = aws.us_east_1
+  zone_id = data.aws_route53_zone.smitha_zone.zone_id
+  name    = "www.smithaproperties.com"
+  type    = "A"
+  ttl     = 30
+
+  set_identifier  = "primary"
+ failover_routing_policy {
+    type = "PRIMARY"
+  }
+  records         = [aws_instance.ec2_us_east_1.public_ip]
+  health_check_id = aws_route53_health_check.primary_ec2.id
+}
+
+resource "aws_route53_record" "secondary" {
+   provider = aws.us_west_2
+  zone_id = data.aws_route53_zone.smitha_zone.zone_id
+  name    = "www.smithaproperties.com"
+  type    = "A"
+  ttl     = 30
+
+  set_identifier = "secondary"
+  failover_routing_policy {
+    type = "SECONDARY"
+  }
+  records        = [aws_instance.ec2_us_west_2.public_ip]
+}
 
