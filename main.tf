@@ -599,4 +599,53 @@ resource "aws_route53_record" "secondary" {
   }
   records        = [aws_instance.ec2_us_west_2.public_ip]
 }
+resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
+  provider               = aws.us_east_1
+  alarm_name          = "CrossRegionReplicaLag"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ReplicaLag"
+  namespace           = "AWS/RDS"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 60
+  alarm_description   = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    DBInstanceIdentifier = "mydb-replica"
+  }
+}
+# route53 alarm
+resource "aws_route53_health_check" "web_health_check" {
+  provider               = aws.us_east_1
+  fqdn              = "www.smithaproperties.com"
+  port              = 80
+  type              = "HTTP"
+  resource_path     = "/"
+  failure_threshold = 3
+  request_interval  = 30
+  tags = {
+    Name = "WebHealthCheck"
+  }
+}
+# 
+resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
+  alarm_name          = "Route53HealthCheckFailed"
+  provider               = aws.us_east_1
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthCheckStatus"
+  namespace           = "AWS/Route53"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+  alarm_description   = "Alarm when Route 53 health check fails"
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    HealthCheckId = aws_route53_health_check.web_health_check.id
+  }
+}
+
 
