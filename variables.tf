@@ -13,7 +13,4 @@ variable "subnet_cidrs_us_east_1" {
 variable "subnet_cidrs_us_west_2" {
   default = ["10.1.10.0/24", "10.1.20.0/24"]
 }
-variable "rds_replica_identifier" {
-  description = "The RDS replica instance identifier"
-  type        = string
-}
+
