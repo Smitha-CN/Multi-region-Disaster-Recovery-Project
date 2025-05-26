@@ -563,6 +563,7 @@ data "aws_route53_zone" "smitha_zone" {
   private_zone = false
 }
 resource "aws_route53_health_check" "primary_ec2" {
+  provider = aws.us_west_2
   fqdn              = "www.smithaproperties.com"
   port              = 80
   type              = "HTTP"
@@ -572,6 +573,7 @@ resource "aws_route53_health_check" "primary_ec2" {
 }
 
 resource "aws_route53_record" "primary" {
+  provider = aws.us_east_1
   zone_id = data.aws_route53_zone.smitha_zone.zone_id
   name    = "www.smithaproperties.com"
   type    = "A"
@@ -586,6 +588,7 @@ resource "aws_route53_record" "primary" {
 }
 
 resource "aws_route53_record" "secondary" {
+   provider = aws.us_west_2
   zone_id = data.aws_route53_zone.smitha_zone.zone_id
   name    = "www.smithaproperties.com"
   type    = "A"
@@ -600,6 +603,7 @@ resource "aws_route53_record" "secondary" {
 # rds alarm
 
 resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
+  provider               = aws.us_east_1
   alarm_name          = "CrossRegionReplicaLag"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
@@ -617,6 +621,7 @@ resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
 }
 # route53 alarm
 resource "aws_route53_health_check" "web_health_check" {
+  provider               = aws.us_east_1
   fqdn              = "www.smithaproperties.com"
   port              = 80
   type              = "HTTP"
@@ -630,6 +635,7 @@ resource "aws_route53_health_check" "web_health_check" {
 # 
 resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
   alarm_name          = "Route53HealthCheckFailed"
+  provider               = aws.us_east_1
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 1
   metric_name         = "HealthCheckStatus"
