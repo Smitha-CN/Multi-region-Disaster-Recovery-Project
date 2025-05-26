@@ -154,6 +154,7 @@ resource "aws_internet_gateway" "igw_us_west_2" {
     Name = "igw-us-west-2"
   }
 }
+
 # Route in us-east-1
 resource "aws_route" "route_internet_us_east_1" {
   provider               = aws.us_east_1
@@ -179,7 +180,14 @@ resource "aws_security_group" "ec2_sg_us_east_1" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict to your IP in real usage
+    cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -202,6 +210,13 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -217,28 +232,69 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
   }
 }
 
+
 # EC2 in us-east-1
 resource "aws_instance" "ec2_us_east_1" {
-  provider          = aws.us_east_1
-  ami               = "ami-0af9569868786b23a" 
-  instance_type     = "t2.micro"
-  subnet_id         = aws_subnet.subnet_us_east_1a.id
-  key_name          = "demo1"  # <-- Replace this
-  vpc_security_group_ids = [aws_security_group.ec2_sg_us_east_1.id]
+  provider                  = aws.us_east_1
+  ami                       = "ami-0af9569868786b23a"
+  instance_type             = "t2.micro"
+  subnet_id                 = aws_subnet.subnet_us_east_1a.id
+  key_name                  = "demo1"  # Replace with your key pair name
+  vpc_security_group_ids    = [aws_security_group.ec2_sg_us_east_1.id]
+
+ 
+user_data = <<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+
+    TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \\
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+    if [[ -n "$TOKEN" ]]; then
+      AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \\
+        http://169.254.169.254/latest/meta-data/placement/availability-zone)
+    else
+      AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+    fi
+
+    echo "<h1>Hello world from $(hostname -f) in AZ $AZ</h1>" > /var/www/html/index.html
+  EOF
 
   tags = {
     Name = "ec2-east"
   }
 }
 
-# EC2 in us-west-2
 resource "aws_instance" "ec2_us_west_2" {
-  provider          = aws.us_west_2
-  ami               = "ami-04999cd8f2624f834" 
-  instance_type     = "t2.micro"
-  subnet_id         = aws_subnet.subnet_us_west_2a.id
-  key_name          = "demo"  # <-- Replace this
-  vpc_security_group_ids = [aws_security_group.ec2_sg_us_west_2.id]
+  provider                  = aws.us_west_2
+  ami                       = "ami-04999cd8f2624f834"
+  instance_type             = "t2.micro"
+  subnet_id                 = aws_subnet.subnet_us_west_2a.id
+  key_name                  = "demo44"  # Replace with your key pair name
+  vpc_security_group_ids    = [aws_security_group.ec2_sg_us_west_2.id]
+
+user_data = <<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+
+    TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \\
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+    if [[ -n "$TOKEN" ]]; then
+      AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \\
+        http://169.254.169.254/latest/meta-data/placement/availability-zone)
+    else
+      AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+    fi
+
+    echo "<h1>Hello world from $(hostname -f) in AZ $AZ</h1>" > /var/www/html/index.html
+  EOF
 
   tags = {
     Name = "ec2-west"
@@ -482,17 +538,15 @@ resource "aws_db_instance" "rds_primary" {
   vpc_security_group_ids = [aws_security_group.ec2_sg_us_east_1.id]
   skip_final_snapshot    = true
   backup_retention_period = 7
-  publicly_accessible    = false
+  publicly_accessible    = true
   multi_az               = false
 
   tags = {
     Name = "rds-primary"
-  }
+    }
+    
 }
-provider "aws" {
-  alias  = "uswest2"
-  region = "us-west-2"
-}
+
 
 resource "aws_db_instance" "replica" {
   provider = aws.us_west_2
@@ -504,6 +558,90 @@ resource "aws_db_instance" "replica" {
   db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group_usw2.name
   skip_final_snapshot  = true
 }
+data "aws_route53_zone" "smitha_zone" {
+  name         = "smithaproperties.com"
+  private_zone = false
+}
+resource "aws_route53_health_check" "primary_ec2" {
+  fqdn              = "www.smithaproperties.com"
+  port              = 80
+  type              = "HTTP"
+  resource_path     = "/"
+  failure_threshold = 3
+  request_interval  = 30
+}
 
+resource "aws_route53_record" "primary" {
+  zone_id = data.aws_route53_zone.smitha_zone.zone_id
+  name    = "www.smithaproperties.com"
+  type    = "A"
+  ttl     = 30
 
+  set_identifier  = "primary"
+ failover_routing_policy {
+    type = "PRIMARY"
+  }
+  records         = [aws_instance.ec2_us_east_1.public_ip]
+  health_check_id = aws_route53_health_check.primary_ec2.id
+}
+
+resource "aws_route53_record" "secondary" {
+  zone_id = data.aws_route53_zone.smitha_zone.zone_id
+  name    = "www.smithaproperties.com"
+  type    = "A"
+  ttl     = 30
+
+  set_identifier = "secondary"
+  failover_routing_policy {
+    type = "SECONDARY"
+  }
+  records        = [aws_instance.ec2_us_west_2.public_ip]
+}
+# rds alarm
+
+resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
+  alarm_name          = "CrossRegionReplicaLag"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ReplicaLag"
+  namespace           = "AWS/RDS"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 60
+  alarm_description   = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    DBInstanceIdentifier = "mydb-replica"
+  }
+}
+# route53 alarm
+resource "aws_route53_health_check" "web_health_check" {
+  fqdn              = "www.smithaproperties.com"
+  port              = 80
+  type              = "HTTP"
+  resource_path     = "/"
+  failure_threshold = 3
+  request_interval  = 30
+  tags = {
+    Name = "WebHealthCheck"
+  }
+}
+# 
+resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
+  alarm_name          = "Route53HealthCheckFailed"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthCheckStatus"
+  namespace           = "AWS/Route53"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+  alarm_description   = "Alarm when Route 53 health check fails"
+  treat_missing_data  = "breaching"
+
+  dimensions = {
+    HealthCheckId = aws_route53_health_check.web_health_check.id
+  }
+}
 
