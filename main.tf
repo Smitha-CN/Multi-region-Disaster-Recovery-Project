@@ -630,7 +630,7 @@ resource "aws_sns_topic_subscription" "email" {
   provider               = aws.us_east_1
   topic_arn = aws_sns_topic.alerts.arn
   protocol  = "email"
-  endpoint  = "smithamalthi@example.com"
+  endpoint  = "smithamalthi@gmail.com"
 }
 
 # route53 alarm
