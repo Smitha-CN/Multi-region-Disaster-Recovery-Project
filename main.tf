@@ -619,7 +619,7 @@ resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
   period                 = 300
   statistic              = "Average"
   threshold = -1
-comparison_operator = "GreaterThanThreshold"
+comparison_operator = "LessThanThreshold"
 
   alarm_description      = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
   treat_missing_data     = "notBreaching"
