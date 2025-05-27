@@ -612,26 +612,25 @@ resource "aws_route53_record" "secondary" {
 resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
   provider               = aws.us_east_1
   alarm_name             = "CrossRegionReplicaLag"
-  
+  comparison_operator    = "GreaterThanThreshold"
   evaluation_periods     = 1
   metric_name            = "ReplicaLag"
   namespace              = "AWS/RDS"
-  period                 = 300
+  period                 = 60                 # evaluate every 1 minute
   statistic              = "Average"
-  threshold = -1
-comparison_operator = "LessThanThreshold"
-
-  alarm_description      = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
-  treat_missing_data     = "notBreaching"
+  threshold              = -1                 # threshold less than any possible lag
+  alarm_description      = "Force alarm for testing"
+  treat_missing_data     = "breaching"        # treat missing data as breach to force alarm
 
   dimensions = {
     DBInstanceIdentifier = "mydb-replica"
   }
 
-  alarm_actions          = [aws_sns_topic.alerts.arn]
-  ok_actions             = [aws_sns_topic.alerts.arn]
+  alarm_actions             = [aws_sns_topic.alerts.arn]
+  ok_actions                = [aws_sns_topic.alerts.arn]
   insufficient_data_actions = [aws_sns_topic.alerts.arn]
 }
+
 
 resource "aws_sns_topic" "alerts" {
   provider               = aws.us_east_1
