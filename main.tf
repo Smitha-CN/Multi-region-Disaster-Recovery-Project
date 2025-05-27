@@ -612,13 +612,15 @@ resource "aws_route53_record" "secondary" {
 resource "aws_cloudwatch_metric_alarm" "cross_region_replica_lag" {
   provider               = aws.us_east_1
   alarm_name             = "CrossRegionReplicaLag"
-  comparison_operator    = "GreaterThanThreshold"
+  
   evaluation_periods     = 1
   metric_name            = "ReplicaLag"
   namespace              = "AWS/RDS"
   period                 = 300
   statistic              = "Average"
-  threshold              = 0
+  threshold = -1
+comparison_operator = "GreaterThanThreshold"
+
   alarm_description      = "Alarm when cross-region RDS replica lag exceeds 60 seconds"
   treat_missing_data     = "notBreaching"
 
@@ -660,14 +662,13 @@ resource "aws_route53_health_check" "web_health_check" {
 resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
   alarm_name          = "Route53HealthCheckFailed"
   provider               = aws.us_east_1
-  
+  comparison_operator = "LessThanThreshold"
   evaluation_periods  = 1
   metric_name         = "HealthCheckStatus"
   namespace           = "AWS/Route53"
   period              = 60
   statistic           = "Minimum"
-  threshold = -1
-  comparison_operator = "GreaterThanThreshold"
+  threshold           = 60
   alarm_description   = "Alarm when Route 53 health check fails"
   treat_missing_data  = "breaching"
 
