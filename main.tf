@@ -660,7 +660,7 @@ resource "aws_route53_health_check" "web_health_check" {
 resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
   alarm_name          = "Route53HealthCheckFailed"
   provider               = aws.us_east_1
-  comparison_operator = "LessThanThreshold"
+  
   evaluation_periods  = 1
   metric_name         = "HealthCheckStatus"
   namespace           = "AWS/Route53"
