@@ -20,7 +20,7 @@ Services used:
 
 Architectural Overview:
 
- 
+
 •	VPC - Provides isolated networking in both regions.
 •	Amazon RDS - Primary in one region with cross-region read replica in the DR region. 
 •	Amazon S3 - Cross-Region Replication (CRR) keeps data synchronized between regions.
