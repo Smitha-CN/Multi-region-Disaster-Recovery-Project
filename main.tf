@@ -182,7 +182,12 @@ resource "aws_security_group" "ec2_sg_us_east_1" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
   }
-
+ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
+  }
   ingress {
     from_port   = 80
     to_port     = 80
@@ -212,7 +217,12 @@ resource "aws_security_group" "ec2_sg_us_west_2" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
   }
-
+ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Replace with your IP for security
+  }
   ingress {
     from_port   = 80
     to_port     = 80
@@ -656,7 +666,8 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_alarm" {
   namespace           = "AWS/Route53"
   period              = 60
   statistic           = "Minimum"
-  threshold           = 1
+  threshold = -1
+  comparison_operator = "GreaterThanThreshold"
   alarm_description   = "Alarm when Route 53 health check fails"
   treat_missing_data  = "breaching"
 
