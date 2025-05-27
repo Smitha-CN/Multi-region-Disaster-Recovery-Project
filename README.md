@@ -20,7 +20,7 @@ Design and implement a **multi-region disaster recovery solution** using AWS ser
 ---
 
 ## 🏗️ Architecture Overview
-
+![Image](https://github.com/user-attachments/assets/c906fb23-d5f1-4f45-9f08-acdbea075055)
 - VPCs deployed in two AWS regions.
 - S3 buckets with cross-region replication enabled.
 - RDS primary instance in Region 1, read replica in Region 2.
